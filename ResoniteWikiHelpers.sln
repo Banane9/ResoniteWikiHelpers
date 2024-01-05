@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResoniteWikiHelpers.TypeColors", "ResoniteWikiHelpers.TypeColors\ResoniteWikiHelpers.TypeColors.csproj", "{07B1DE43-82A1-4029-8E6F-4D949AA50FD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResoniteWikiHelpers.ProtofluxNodeExport", "ResoniteWikiHelpers.ProtofluxNodeExport\ResoniteWikiHelpers.ProtofluxNodeExport.csproj", "{5BB1C1AE-2A57-44B1-84CB-59B49CDDB543}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{07B1DE43-82A1-4029-8E6F-4D949AA50FD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07B1DE43-82A1-4029-8E6F-4D949AA50FD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07B1DE43-82A1-4029-8E6F-4D949AA50FD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BB1C1AE-2A57-44B1-84CB-59B49CDDB543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BB1C1AE-2A57-44B1-84CB-59B49CDDB543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BB1C1AE-2A57-44B1-84CB-59B49CDDB543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BB1C1AE-2A57-44B1-84CB-59B49CDDB543}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
