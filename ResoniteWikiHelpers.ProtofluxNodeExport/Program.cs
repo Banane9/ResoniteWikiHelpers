@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using FrooxEngine.ProtoFlux;
 using ProtoFlux.Core;
 using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using ProtoFlux.Runtimes.Execution.Nodes.Operators;
@@ -40,12 +41,14 @@ namespace ResoniteWikiHelpers.ProtofluxNodeExport
         private static readonly string _tableFooterTemplate =
 @"| {0} | {1} |  |
 <!-- ProtofluxNode:end -->
+<!-- embed:end:{1} -->
 
 ";
 
         private static readonly string _tableHeaderTemplate =
 @"### {0}
 
+<!-- embed:start:{1} -->
 <!-- ProtofluxNode:start -->
 | {0} | Type | Label |
 | --- | ---- | ----- |";
@@ -70,6 +73,9 @@ namespace ResoniteWikiHelpers.ProtofluxNodeExport
 
             using var allNodesFile = new FileStream(Path.Combine("export", "README.md"), FileMode.OpenOrCreate);
             using var allNodesWriter = new StreamWriter(allNodesFile);
+
+            //using var nodeAliasesFile = new FileStream(Path.Combine("export", "README.md"), FileMode.OpenOrCreate);
+            //using var nodeAliasesWriter = new StreamWriter(nodeAliasesFile);
 
             allNodesWriter.WriteLine(_allNodesNotice);
 
@@ -105,17 +111,22 @@ namespace ResoniteWikiHelpers.ProtofluxNodeExport
 
                 foreach (var node in nodeCategory.OrderBy(node => node.Metadata.Overload ?? node.Name))
                 {
-                    writer.WriteLine(string.Format(_tableHeaderTemplate, _rtfRegex.Replace(node.Name.Replace("`", "\\`").Replace("|", "\\|"), "")));
+                    var nodeType = node.Type.FullName!.Replace("`", "\\`");
+                    writer.WriteLine(_tableHeaderTemplate, _rtfRegex.Replace(node.Name.Replace("`", "\\`").Replace("|", "\\|"), ""), nodeType);
 
                     var inputElements = node.Metadata.FixedOperations
-                        .Concat<IElementMetadata>(node.Metadata.DynamicOperations)
+                        .Concat(node.Metadata.DynamicOperations
+                            .SelectMany(dynOp => new IElementMetadata[] { dynOp, new InputListEndMetadata(dynOp.Index, dynOp.Name, GetOperationName(dynOp.SupportsSync, dynOp.SupportsAsync)) }))
                         .Concat(node.Metadata.FixedInputs)
-                        .Concat(node.Metadata.DynamicInputs);
+                        .Concat(node.Metadata.DynamicInputs
+                            .SelectMany(dynIn => new IElementMetadata[] { dynIn, new InputListEndMetadata(dynIn.Index, dynIn.Name, dynIn.Field.FieldType.IsConstructedGenericType ? dynIn.Field.FieldType.GenericTypeArguments[0].Name : dynIn.Field.FieldType.Name) }));
 
                     var outputElements = node.Metadata.FixedImpulses
-                        .Concat<IElementMetadata>(node.Metadata.DynamicImpulses)
+                        .Concat(node.Metadata.DynamicImpulses
+                            .SelectMany(dynOp => new IElementMetadata[] { dynOp, new OutputListEndMetadata(dynOp.Index, dynOp.Name, dynOp.Type?.ToString() ?? "null") }))
                         .Concat(node.Metadata.FixedOutputs)
-                        .Concat(node.Metadata.DynamicOutputs);
+                        .Concat(node.Metadata.DynamicOutputs
+                            .SelectMany(dynOut => new IElementMetadata[] { dynOut, new OutputListEndMetadata(dynOut.Index, dynOut.Name, dynOut.TypeConstraint?.Name ?? "*") }));
 
                     foreach (var element in inputElements.Interleave(outputElements))
                     {
@@ -137,6 +148,10 @@ namespace ResoniteWikiHelpers.ProtofluxNodeExport
                                 writer.WriteLine(FormatRow("inputlist", input.Field.FieldType.IsConstructedGenericType ? input.Field.FieldType.GenericTypeArguments[0].Name : input.Field.FieldType.Name, input.Name));
                                 break;
 
+                            case InputListEndMetadata inputListEnd:
+                                writer.WriteLine(FormatRow("inputlistbuttons", inputListEnd.Type, inputListEnd.Name));
+                                break;
+
                             case ImpulseMetadata impulse:
                                 writer.WriteLine(FormatRow("output", impulse.Type.ToString(), impulse.Name));
                                 break;
@@ -153,13 +168,17 @@ namespace ResoniteWikiHelpers.ProtofluxNodeExport
                                 writer.WriteLine(FormatRow("outputlist", outputList.TypeConstraint?.Name ?? "*", outputList.Name));
                                 break;
 
+                            case OutputListEndMetadata outputListEnd:
+                                writer.WriteLine(FormatRow("outputlistbuttons", outputListEnd.Type, outputListEnd.Name));
+                                break;
+
                             default:
                                 Console.WriteLine(element);
                                 break;
                         }
                     }
 
-                    writer.WriteLine(string.Format(_tableFooterTemplate, node.Path, node.Type.FullName!.Replace("`", "\\`")));
+                    writer.WriteLine(_tableFooterTemplate, node.Path, nodeType);
                 }
 
                 writer.Flush();
